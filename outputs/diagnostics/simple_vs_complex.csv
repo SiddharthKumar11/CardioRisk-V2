@@ -1,0 +1,4 @@
+model,cv_accuracy_mean,cv_accuracy_std
+Regularized Logistic Regression (simple),0.864642375168691,0.05079604922520004
+Saved best model (KNeighborsClassifier),0.8642375168690958,0.06584727036670891
+Majority-class baseline,0.5417004048582996,0.00996642398792811
