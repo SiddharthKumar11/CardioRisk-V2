@@ -18,6 +18,41 @@ from predict_risk import predict_patient_risk
 from shap_explainability import explain_patient_prediction
 
 
+CODE_MEANINGS = {
+    "sex": {0: "Female", 1: "Male"},
+    "cp": {
+        0: "Typical Angina",
+        1: "Atypical Angina",
+        2: "Non-Anginal Pain",
+        3: "Asymptomatic",
+    },
+    "fbs": {
+        0: "Fasting blood sugar <= 120 mg/dL",
+        1: "Fasting blood sugar > 120 mg/dL",
+    },
+    "restecg": {
+        0: "Normal",
+        1: "ST-T wave abnormality",
+        2: "Left ventricular hypertrophy",
+    },
+    "exang": {0: "No", 1: "Yes"},
+    "slope": {0: "Upsloping", 1: "Flat", 2: "Downsloping"},
+    "ca": {
+        0: "0 major vessels",
+        1: "1 major vessel",
+        2: "2 major vessels",
+        3: "3 major vessels",
+        4: "Special/unknown; verify",
+    },
+    "thal": {
+        0: "Unknown/error or missing-type code",
+        1: "Fixed defect",
+        2: "Normal",
+        3: "Reversible defect",
+    },
+}
+
+
 st.set_page_config(
     page_title="CardioRiskML | Patient risk",
     page_icon="❤️",
@@ -54,11 +89,10 @@ def _select_coded_value(label: str, feature: str, model: Any) -> int:
         label,
         choices,
         index=choices.index(_coded_default(feature, model)),
-        format_func=lambda value: f"Code {value}",
-        help=(
-            "Select the dataset's numeric code. The source file does not provide "
-            "a verified human-readable codebook for this feature."
+        format_func=lambda value: (
+            f"{value}: {CODE_MEANINGS[feature].get(value, 'Code ' + str(value))}"
         ),
+        help="Choose the code and its meaning used by this project's dataset.",
     )
     return int(selected)
 
@@ -242,6 +276,6 @@ if submitted:
 
 st.divider()
 st.caption(
-    "The input codes are passed as stored in the supplied dataset. Confirm that "
-    "your local dataset uses the same coding scheme before interpreting results."
+    "Categorical code meanings are shown beside each option. Code 4 for ca is "
+    "special/unknown and should be verified against the source record."
 )

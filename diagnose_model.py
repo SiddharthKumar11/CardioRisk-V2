@@ -180,11 +180,61 @@ def _nested_cv_model_selection(
 
     fold_table = pd.DataFrame(fold_rows)
     fold_table.to_csv(DIAGNOSTIC_DIR / "nested_cv_folds.csv", index=False)
+    _save_cv_accuracy_chart(fold_table)
     means = {
         metric: float(fold_table[metric].mean())
         for metric in ("accuracy", "precision", "recall", "f1", "roc_auc")
     }
     return means
+
+
+def _save_cv_accuracy_chart(fold_table: pd.DataFrame) -> None:
+    """Create a vertical fold-accuracy bar chart and highlight the peak fold."""
+    if fold_table.empty or "accuracy" not in fold_table:
+        raise ValueError("Nested-CV fold table must contain accuracy results.")
+
+    peak_index = int(fold_table["accuracy"].idxmax())
+    peak_row = fold_table.loc[peak_index]
+    mean_accuracy = float(fold_table["accuracy"].mean())
+    colors = [
+        "#e45756" if index == peak_index else "#4c78a8"
+        for index in fold_table.index
+    ]
+    labels = [
+        f"Fold {int(row.outer_fold)}\n{row.selected_model}"
+        for row in fold_table.itertuples()
+    ]
+
+    figure, axis = plt.subplots(figsize=(9, 5.5))
+    bars = axis.bar(labels, fold_table["accuracy"] * 100, color=colors, width=0.68)
+    axis.axhline(
+        mean_accuracy * 100,
+        color="#555555",
+        linestyle="--",
+        linewidth=1.5,
+        label=f"Mean accuracy: {mean_accuracy:.1%}",
+    )
+    axis.bar_label(bars, labels=[f"{value:.1%}" for value in fold_table["accuracy"]], padding=4)
+    axis.annotate(
+        f"Peak: {peak_row['accuracy']:.1%}",
+        xy=(peak_index, float(peak_row["accuracy"]) * 100),
+        xytext=(0, 22),
+        textcoords="offset points",
+        ha="center",
+        fontweight="bold",
+        color="#b22222",
+    )
+    axis.set(
+        title="Nested Cross-Validation Accuracy by Fold",
+        ylabel="Accuracy (%)",
+        xlabel="Outer fold (selected model)",
+        ylim=(0, 110),
+    )
+    axis.grid(axis="y", alpha=0.25)
+    axis.legend(loc="lower right")
+    figure.tight_layout()
+    figure.savefig(DIAGNOSTIC_DIR / "accuracy_by_cv_fold.png", dpi=180)
+    plt.close(figure)
 
 
 def _current_pipeline(

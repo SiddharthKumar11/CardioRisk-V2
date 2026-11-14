@@ -96,10 +96,22 @@ python diagnose_model.py
 It reproduces the stratified train/validation/test partitions from `main.py`,
 uses nested CV for model-selection performance, and writes learning curves,
 validation curves, partition metrics, nested-CV fold scores, and validation-set
-permutation importance under `outputs/diagnostics/`. It does not modify or
-refit the saved model. The test partition is used only for final scoring; the
-saved threshold (selected on validation) is reported separately on test so its
+permutation importance under `outputs/diagnostics/`. The vertical
+`accuracy_by_cv_fold.png` chart highlights the peak outer-fold accuracy in red
+and shows mean fold accuracy as a dashed line. It does not modify or refit the
+saved model. The test partition is used only for final scoring; the saved
+threshold (selected on validation) is reported separately on test so its
 validation score is not presented as unbiased.
+
+Create separate ROC and precision-recall plots from the saved pipeline and the
+same untouched held-out test split with:
+
+```powershell
+python plot_roc_pr_curves.py
+```
+
+The script does not retrain or tune on the test data. It saves
+`outputs/roc_curve.png` and `outputs/precision_recall_curve.png`.
 
 ## Make a prediction
 
